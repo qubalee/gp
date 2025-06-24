@@ -1,10 +1,11 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Copy, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { motion, AnimatePresence } from "framer-motion";
+import { useSwipeable } from "react-swipeable";
 
 interface ImageModalProps {
   prompts: {
@@ -23,6 +24,7 @@ interface ImageModalProps {
 const ImageModal = ({ prompts, currentIndex, isOpen, onClose }: ImageModalProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(currentIndex);
   const { toast } = useToast();
+  const [direction, setDirection] = useState(0);
 
   useEffect(() => {
     setCurrentImageIndex(currentIndex);
@@ -39,11 +41,17 @@ const ImageModal = ({ prompts, currentIndex, isOpen, onClose }: ImageModalProps)
   };
 
   const goToPrevious = () => {
-    setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : prompts.length - 1));
+    if (currentImageIndex > 0) {
+      setDirection(-1);
+      setCurrentImageIndex((prev) => prev - 1);
+    }
   };
 
   const goToNext = () => {
-    setCurrentImageIndex((prev) => (prev < prompts.length - 1 ? prev + 1 : 0));
+    if (currentImageIndex < prompts.length - 1) {
+      setDirection(1);
+      setCurrentImageIndex((prev) => prev + 1);
+    }
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -57,7 +65,14 @@ const ImageModal = ({ prompts, currentIndex, isOpen, onClose }: ImageModalProps)
       document.addEventListener("keydown", handleKeyDown);
       return () => document.removeEventListener("keydown", handleKeyDown);
     }
-  }, [isOpen]);
+  }, [isOpen, currentImageIndex]);
+
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: goToNext,
+    onSwipedRight: goToPrevious,
+    preventScrollOnSwipe: true,
+    trackTouch: true,
+  });
 
   if (!currentPrompt) return null;
 
@@ -65,6 +80,7 @@ const ImageModal = ({ prompts, currentIndex, isOpen, onClose }: ImageModalProps)
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[95vh] p-0 bg-stone-900 border-stone-700">
         <div className="relative h-full">
+
           {/* Close Button */}
           <Button
             variant="ghost"
@@ -78,19 +94,32 @@ const ImageModal = ({ prompts, currentIndex, isOpen, onClose }: ImageModalProps)
           {/* Navigation Buttons */}
           {prompts.length > 1 && (
             <>
+              {/* Left Arrow */}
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-stone-800/60 hover:bg-stone-700/80 text-white"
+                disabled={currentImageIndex === 0}
                 onClick={goToPrevious}
+                className={`
+                  absolute left-4 top-1/2 -translate-y-1/2 z-20
+                  bg-stone-800/60 text-white transition
+                  ${currentImageIndex === 0 ? "opacity-30 cursor-not-allowed" : "hover:bg-stone-700/80"}
+                `}
               >
                 <ChevronLeft className="w-6 h-6" />
               </Button>
+
+              {/* Right Arrow */}
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-stone-800/60 hover:bg-stone-700/80 text-white"
+                disabled={currentImageIndex === prompts.length - 1}
                 onClick={goToNext}
+                className={`
+                  absolute right-4 top-1/2 -translate-y-1/2 z-20
+                  bg-stone-800/60 text-white transition
+                  ${currentImageIndex === prompts.length - 1 ? "opacity-30 cursor-not-allowed" : "hover:bg-stone-700/80"}
+                `}
               >
                 <ChevronRight className="w-6 h-6" />
               </Button>
@@ -104,19 +133,30 @@ const ImageModal = ({ prompts, currentIndex, isOpen, onClose }: ImageModalProps)
             </span>
           </div>
 
-          {/* Main Image */}
-          <div className="flex items-center justify-center h-[60vh]">
-            <img
-              src={`${import.meta.env.BASE_URL}/assets/${currentPrompt.imageUrl}`}
-              alt={currentPrompt.title}
-              className="max-w-full max-h-full object-contain"
-            />
+          {/* Animated Image with Swipe */}
+          <div
+            {...swipeHandlers}
+            className="flex items-center justify-center h-[60vh] overflow-hidden touch-pan-y"
+          >
+            <AnimatePresence initial={false} custom={direction}>
+              <motion.img
+                key={currentPrompt.imageUrl}
+                src={`${import.meta.env.BASE_URL}/assets/${currentPrompt.imageUrl}`}
+                alt={currentPrompt.title}
+                className="max-w-full max-h-full object-contain"
+                custom={direction}
+                initial={{ x: direction > 0 ? 300 : -300, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: direction > 0 ? -300 : 300, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              />
+            </AnimatePresence>
           </div>
 
-          {/* Bottom Info Panel */}
+          {/* Info Panel */}
           <div className="bg-stone-800 text-white p-6 max-h-[35vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-3">{currentPrompt.title}</h2>
-            
+
             <div className="flex flex-wrap gap-2 mb-4">
               {currentPrompt.tags.map((tag) => (
                 <Badge key={tag} variant="secondary" className="bg-stone-700 text-stone-200 hover:bg-stone-600">
@@ -124,17 +164,15 @@ const ImageModal = ({ prompts, currentIndex, isOpen, onClose }: ImageModalProps)
                 </Badge>
               ))}
             </div>
-            
+
             <div className="bg-stone-700 rounded-lg p-4 mb-4">
               <h3 className="text-sm font-semibold text-stone-300 mb-2">AI Prompt:</h3>
               <div className="max-h-32 overflow-y-auto">
-                <p className="text-sm text-stone-200 leading-relaxed">
-                  {currentPrompt.prompt}
-                </p>
+                <p className="text-sm text-stone-200 leading-relaxed">{currentPrompt.prompt}</p>
               </div>
             </div>
-            
-            <Button 
+
+            <Button
               onClick={copyPrompt}
               className="w-full bg-gradient-to-r from-amber-600 via-stone-600 to-emerald-600 hover:from-amber-700 hover:via-stone-700 hover:to-emerald-700 transition-all duration-300 text-white"
             >

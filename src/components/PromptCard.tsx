@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom"; // ✅ Added for linking tags
+import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { db } from "@/lib/firebase";
+import { collection, addDoc, Timestamp } from "firebase/firestore";
 
 interface PromptCardProps {
   prompt: {
@@ -23,6 +25,24 @@ const PromptCard = ({ prompt, index, onImageClick }: PromptCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const { toast } = useToast();
+  const [showRating, setShowRating] = useState(false);
+  const [ratings, setRatings] = useState<{ [key: string]: number }>({
+    Realism: 0,
+    Accuracy: 0,
+    Detail: 0,
+    Visual: 0,
+  });
+
+  const submitRatings = async () => {
+    await addDoc(collection(db, "ratings"), {
+      imageId: prompt.id,
+      source: "card",
+      ratings,
+      timestamp: Timestamp.now(),
+    });
+    toast({ title: "Thank you!", description: "Your rating has been submitted." });
+    setShowRating(false);
+  };
 
   const copyPrompt = () => {
     navigator.clipboard.writeText(prompt.prompt);
@@ -64,10 +84,12 @@ const PromptCard = ({ prompt, index, onImageClick }: PromptCardProps) => {
           </div>
         </div>
       </div>
-      
+
       <CardContent className="p-4 flex flex-col flex-grow">
-        <h3 className="font-semibold text-lg mb-3 line-clamp-2 text-stone-800 min-h-[3.5rem]">{prompt.title}</h3>
-        
+        <h3 className="font-semibold text-lg mb-3 line-clamp-2 text-stone-800 min-h-[3.5rem]">
+          {prompt.title}
+        </h3>
+
         <div className="flex flex-wrap gap-1 mb-3">
           {prompt.tags.slice(0, 3).map((tag) => (
             <Link to={`/tags/${tag}`} key={tag}>
@@ -80,13 +102,13 @@ const PromptCard = ({ prompt, index, onImageClick }: PromptCardProps) => {
             </Link>
           ))}
         </div>
-        
+
         <div className="flex-grow mb-4">
           <p className="text-sm text-stone-600 leading-relaxed line-clamp-4">
             {prompt.prompt}
           </p>
         </div>
-        
+
         <Button 
           onClick={copyPrompt}
           size="sm" 
@@ -95,6 +117,48 @@ const PromptCard = ({ prompt, index, onImageClick }: PromptCardProps) => {
           <Copy className="w-4 h-4 mr-2" />
           Copy Prompt
         </Button>
+
+        <Button
+          size="sm"
+          variant="outline"
+          className="w-full mt-2"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowRating(!showRating);
+          }}
+        >
+          📊 Rate Image
+        </Button>
+
+        {showRating && (
+          <div className="mt-2 space-y-2">
+            {["Realism", "Accuracy", "Detail", "Visual"].map((criterion) => (
+              <div key={criterion}>
+                <label className="text-xs text-stone-600">{criterion}</label>
+                <div className="flex space-x-1">
+                  {[1, 2, 3, 4, 5].map((val) => (
+                    <span
+                      key={val}
+                      className={`cursor-pointer text-xl ${ratings[criterion] >= val ? "text-yellow-400" : "text-gray-300"}`}
+                      onClick={() =>
+                        setRatings((prev) => ({ ...prev, [criterion]: val }))
+                      }
+                    >
+                      ★
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <Button
+              size="sm"
+              onClick={submitRatings}
+              className="w-full mt-2 bg-emerald-600 text-white"
+            >
+              Submit Rating
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
