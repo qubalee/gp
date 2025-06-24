@@ -1,6 +1,6 @@
-
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Link } from "react-router-dom"; // ✅ import Link
 
 interface HeaderProps {
   searchTerm: string;
@@ -12,11 +12,13 @@ const Header = ({ searchTerm, setSearchTerm }: HeaderProps) => {
     <header className="bg-stone-100/80 backdrop-blur-md border-b border-stone-300 sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+          
+          {/* ✅ Wrap logo + text in a Link to home */}
+          <Link to="/" className="flex items-center space-x-4 hover:opacity-80 transition">
             <div className="w-8 h-8 bg-gradient-to-r from-amber-600 via-stone-600 to-emerald-600 rounded-lg"></div>
             <span className="text-xl font-bold text-stone-800">GeoPrompts</span>
-          </div>
-          
+          </Link>
+
           <div className="relative max-w-md w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-500 w-4 h-4" />
             <Input

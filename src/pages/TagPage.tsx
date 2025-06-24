@@ -6,6 +6,7 @@ import PromptCard from "@/components/PromptCard";
 const TagPage = () => {
   const { tag } = useParams();
   const [filteredPrompts, setFilteredPrompts] = useState([]);
+  const [activeCardId, setActiveCardId] = useState<string | null>(null); // ✅ added
 
   useEffect(() => {
     if (tag) {
@@ -31,6 +32,8 @@ const TagPage = () => {
                 prompt={item}
                 index={index}
                 onImageClick={() => {}}
+                activeCardId={activeCardId}
+                setActiveCardId={setActiveCardId}
               />
             ))
           ) : (
@@ -42,6 +45,6 @@ const TagPage = () => {
       </div>
     </div>
   );
-}; // ✅ This closing brace was missing
+};
 
 export default TagPage;

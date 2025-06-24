@@ -19,19 +19,23 @@ interface PromptCardProps {
   };
   index: number;
   onImageClick: (index: number) => void;
+  activeCardId: string | null;
+  setActiveCardId: (id: string | null) => void;
 }
 
-const PromptCard = ({ prompt, index, onImageClick }: PromptCardProps) => {
+const PromptCard = ({ prompt, index, onImageClick, activeCardId, setActiveCardId }: PromptCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const isRatingMode = activeCardId === prompt.id;
   const { toast } = useToast();
-  const [showRating, setShowRating] = useState(false);
   const [ratings, setRatings] = useState<{ [key: string]: number }>({
     Realism: 0,
     Accuracy: 0,
     Detail: 0,
     Visual: 0,
   });
+
+  const isFullyRated = Object.values(ratings).every((val) => val > 0);
 
   const submitRatings = async () => {
     await addDoc(collection(db, "ratings"), {
@@ -41,7 +45,7 @@ const PromptCard = ({ prompt, index, onImageClick }: PromptCardProps) => {
       timestamp: Timestamp.now(),
     });
     toast({ title: "Thank you!", description: "Your rating has been submitted." });
-    setShowRating(false);
+    setActiveCardId(null); // collapse after submit
   };
 
   const copyPrompt = () => {
@@ -57,11 +61,11 @@ const PromptCard = ({ prompt, index, onImageClick }: PromptCardProps) => {
   };
 
   return (
-    <Card 
-      className={`
-        group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 bg-white/90 backdrop-blur-sm border-stone-200 flex flex-col h-full
+    <Card
+      className={`self-start group transition-all duration-500 flex flex-col h-full
         ${imageLoaded ? 'animate-fade-in' : 'opacity-0'}
-      `}
+        cursor-pointer hover:shadow-2xl hover:-translate-y-2
+        bg-white/90 backdrop-blur-sm border-stone-200`}
       style={{ animationDelay: `${index * 100}ms` }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -73,10 +77,8 @@ const PromptCard = ({ prompt, index, onImageClick }: PromptCardProps) => {
           className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110"
           onLoad={() => setImageLoaded(true)}
         />
-        <div className={`
-          absolute inset-0 bg-stone-900/60 transition-opacity duration-300
-          ${isHovered ? 'opacity-100' : 'opacity-0'}
-        `}>
+        <div className={`absolute inset-0 bg-stone-900/60 transition-opacity duration-300
+          ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-white text-sm font-medium bg-stone-800/50 px-3 py-1 rounded-full">
               Click to zoom
@@ -109,28 +111,28 @@ const PromptCard = ({ prompt, index, onImageClick }: PromptCardProps) => {
           </p>
         </div>
 
-        <Button 
+        <Button
           onClick={copyPrompt}
-          size="sm" 
+          size="sm"
           className="w-full bg-gradient-to-r from-amber-600 via-stone-600 to-emerald-600 hover:from-amber-700 hover:via-stone-700 hover:to-emerald-700 transition-all duration-300 text-white shadow-md mt-auto"
         >
           <Copy className="w-4 h-4 mr-2" />
           Copy Prompt
         </Button>
 
-        <Button
-          size="sm"
-          variant="outline"
-          className="w-full mt-2"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowRating(!showRating);
-          }}
-        >
-          📊 Rate Image
-        </Button>
-
-        {showRating && (
+        {!isRatingMode ? (
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full mt-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveCardId(prompt.id);
+            }}
+          >
+            📊 Rate Image
+          </Button>
+        ) : (
           <div className="mt-2 space-y-2">
             {["Realism", "Accuracy", "Detail", "Visual"].map((criterion) => (
               <div key={criterion}>
@@ -150,13 +152,25 @@ const PromptCard = ({ prompt, index, onImageClick }: PromptCardProps) => {
                 </div>
               </div>
             ))}
-            <Button
-              size="sm"
-              onClick={submitRatings}
-              className="w-full mt-2 bg-emerald-600 text-white"
-            >
-              Submit Rating
-            </Button>
+          <div className="flex gap-2 mt-2">
+              <Button
+                size="sm"
+                onClick={submitRatings}
+                disabled={!isFullyRated}
+                className="flex-1 bg-emerald-600 text-white disabled:opacity-40"
+              >
+                Submit Rating
+              </Button>
+
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setActiveCardId(null)} // ✅ collapse card
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
           </div>
         )}
       </CardContent>

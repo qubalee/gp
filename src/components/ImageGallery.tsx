@@ -20,6 +20,7 @@ const ImageGallery = ({ prompts }: ImageGalleryProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [visibleCount, setVisibleCount] = useState(8);
+  const [activeCardId, setActiveCardId] = useState<string | null>(null); // ✅ tracks which card's rating is open
 
   const handleImageClick = (index: number) => {
     setSelectedImageIndex(index);
@@ -41,6 +42,8 @@ const ImageGallery = ({ prompts }: ImageGalleryProps) => {
             prompt={prompt}
             index={index}
             onImageClick={handleImageClick}
+            activeCardId={activeCardId}
+            setActiveCardId={setActiveCardId}
           />
         ))}
       </div>

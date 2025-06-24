@@ -25,7 +25,7 @@ const Index = () => {
             Welcome to GeoPrompts
           </h1>
           <p className="text-xl text-stone-600 max-w-2xl mx-auto">
-            Explore AI-generated geological images and their short and detailed prompts.
+            A visual library of Earth's imagined features. 
           </p>
         </div>
 

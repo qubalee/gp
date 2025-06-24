@@ -6,7 +6,7 @@ import { Copy, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSwipeable } from "react-swipeable";
-
+import { Link } from "react-router-dom";
 interface ImageModalProps {
   prompts: {
     id: string;
@@ -159,10 +159,12 @@ const ImageModal = ({ prompts, currentIndex, isOpen, onClose }: ImageModalProps)
 
             <div className="flex flex-wrap gap-2 mb-4">
               {currentPrompt.tags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="bg-stone-700 text-stone-200 hover:bg-stone-600">
-                  {tag}
-                </Badge>
-              ))}
+                  <Link to={`/tags/${tag}`} key={tag}>
+                    <Badge className="cursor-pointer hover:bg-stone-600">
+                      {tag}
+                    </Badge>
+                  </Link>
+                ))}
             </div>
 
             <div className="bg-stone-700 rounded-lg p-4 mb-4">
