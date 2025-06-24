@@ -12,7 +12,7 @@ const Footer = () => {
               <h3 className="text-xl font-bold text-white">GeoPrompts</h3>
             </div>
             <p className="text-stone-400 leading-relaxed">
-              Explore AI-generated geological images and their detailed prompts. A visual library of Earth's imagined features.
+              A visual library of Earth's imagined features.
             </p>
           </div>
 
