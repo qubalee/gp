@@ -5,19 +5,22 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route } from "react-router-dom";
 
+// ✅ Page and layout imports
 import Layout from "@/components/Layout";
 import Index from "./pages/Index";
-import TagPage from "./pages/TagPage";
+import TagsPage from "./pages/TagsPage";   // ✅ static tag list
+import TagPage from "./pages/TagPage";     // ✅ dynamic tag filter
 import NotFound from "./pages/NotFound";
 
-// ✅ Import Firebase Auth
+// ✅ Firebase Auth
 import { auth } from "@/lib/firebase";
 import { signInAnonymously } from "firebase/auth";
 
+// ✅ Create QueryClient for React Query
 const queryClient = new QueryClient();
 
 const App = () => {
-  // ✅ Automatically log in anonymously once per session
+  // ✅ Log in anonymously on app load
   useEffect(() => {
     signInAnonymously(auth).catch((error) => {
       console.error("Anonymous login failed:", error);
@@ -32,7 +35,14 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Index />} />
+
+            {/* ✅ All tags list */}
+            <Route path="tags" element={<TagsPage />} />
+
+            {/* ✅ Prompts filtered by individual tag */}
             <Route path="tags/:tag" element={<TagPage />} />
+
+            {/* ✅ Fallback 404 route */}
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

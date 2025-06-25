@@ -41,38 +41,29 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Resources Column */}
+          {/* Quick Access Column */}
           <div>
-            <h4 className="text-lg font-semibold text-white mb-4">Resources</h4>
+            <h4 className="text-lg font-semibold text-white mb-4">Quick Access</h4>
             <ul className="space-y-2 text-stone-400">
               <li>
                 <a
-                  href="https://vitejs.dev"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-emerald-400 transition-colors"
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const evt = new CustomEvent("open-rating-overview");
+                    window.dispatchEvent(evt);
+                  }}
+                  className="hover:text-emerald-400 transition-colors cursor-pointer"
                 >
-                  Vite Documentation
+                  Rating Overview
                 </a>
               </li>
               <li>
                 <a
-                  href="https://react.dev"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="/tags"
                   className="hover:text-emerald-400 transition-colors"
                 >
-                  React Docs
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://tailwindcss.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-emerald-400 transition-colors"
-                >
-                  Tailwind CSS
+                  Browse Tags
                 </a>
               </li>
             </ul>
