@@ -2,7 +2,6 @@ import { useState } from "react";
 import PromptCard from "@/components/PromptCard";
 import ImageModal from "@/components/ImageModal";
 
-// Prompt type
 interface PromptType {
   id: string;
   title: string;
@@ -20,11 +19,12 @@ const ImageGallery = ({ prompts }: ImageGalleryProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [visibleCount, setVisibleCount] = useState(8);
-  const [activeCardId, setActiveCardId] = useState<string | null>(null); // ✅ tracks which card's rating is open
+  const [activeCardId, setActiveCardId] = useState<string | null>(null);
 
   const handleImageClick = (index: number) => {
     setSelectedImageIndex(index);
     setIsModalOpen(true);
+    setActiveCardId(null); // Close any open rating state
   };
 
   const showMore = () => {
@@ -35,7 +35,7 @@ const ImageGallery = ({ prompts }: ImageGalleryProps) => {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 [grid-auto-rows:minmax(0,_auto)]">
         {visiblePrompts.map((prompt, index) => (
           <PromptCard
             key={prompt.id}

@@ -61,15 +61,18 @@ const PromptCard = ({ prompt, index, onImageClick, activeCardId, setActiveCardId
   };
 
   return (
-    <Card
-      className={`self-start group transition-all duration-500 flex flex-col h-full
-        ${imageLoaded ? 'animate-fade-in' : 'opacity-0'}
-        cursor-pointer hover:shadow-2xl hover:-translate-y-2
-        bg-white/90 backdrop-blur-sm border-stone-200`}
-      style={{ animationDelay: `${index * 100}ms` }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+        <Card
+          className={`group transition-all duration-500 flex flex-col ${
+            isRatingMode ? 'h-auto' : 'h-[500px]'
+          } self-start
+            ${imageLoaded ? 'animate-fade-in' : 'opacity-0'}
+            cursor-pointer hover:shadow-2xl hover:-translate-y-2
+            bg-white/90 backdrop-blur-sm border-stone-200`}
+          style={{ animationDelay: `${index * 100}ms` }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+
       <div className="relative overflow-hidden rounded-t-lg" onClick={handleImageClick}>
         <img
           src={`${import.meta.env.BASE_URL}/assets/${prompt.imageUrl}?w=400&h=300&fit=crop`}
@@ -88,10 +91,18 @@ const PromptCard = ({ prompt, index, onImageClick, activeCardId, setActiveCardId
       </div>
 
       <CardContent className="p-4 flex flex-col flex-grow">
-        <h3 className="font-semibold text-lg mb-3 line-clamp-2 text-stone-800 min-h-[3.5rem]">
-          {prompt.title}
-        </h3>
-
+        <div className="mb-3 flex flex-col gap-0.5 text-stone-800 min-h-[3.5rem]">
+          <span
+            className="text-[11px] text-stone-500 font-mono cursor-pointer hover:text-stone-700"
+            onClick={() => {
+              navigator.clipboard.writeText(prompt.id);
+              toast({ title: "ID Copied", description: prompt.id });
+            }}
+          >
+            ID: {prompt.id}
+          </span>
+          <h3 className="font-semibold text-lg leading-snug line-clamp-2">{prompt.title}</h3>
+        </div>
         <div className="flex flex-wrap gap-1 mb-3">
           {prompt.tags.slice(0, 3).map((tag) => (
             <Link to={`/tags/${tag}`} key={tag}>
